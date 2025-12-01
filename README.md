@@ -239,9 +239,40 @@ port = 5432
 user = "manager_user"
 name = "manager_db"
 sslmode = "disable"
+
+[tls]
+enabled = false
+cert_file = ""
+key_file = ""
+ca_file = ""
 ```
 
-### `.env`
+### Переменные окружения
+
+#### Database
+```
+DB_HOST=localhost              # PostgreSQL хост
+DB_PORT=5432                   # PostgreSQL порт
+DB_USER=manager_user           # Пользователь БД
+DB_PASSWORD=secure_password_here # Пароль БД
+DB_NAME=manager_db             # Имя БД
+DB_SSLMODE=disable             # SSL режим (disable/require)
+```
+
+#### Application
+```
+APP_PORT=8081                  # Порт HTTP сервера
+```
+
+#### TLS (по умолчанию отключен)
+```
+TLS_ENABLED=false              # Включить TLS (true/false)
+TLS_CERT_FILE=                 # Путь к сертификату сервера
+TLS_KEY_FILE=                  # Путь к приватному ключу сервера
+TLS_CA_FILE=                   # Путь к сертификату CA для проверки client cert
+```
+
+### Пример `.env` для локальной разработки
 
 ```bash
 DB_USER=manager_user
@@ -263,6 +294,42 @@ DB_SSLMODE=disable
 - ✅ Идиоматичный Go код
 - ✅ Интерфейсы для зависимостей
 - ✅ Unit тесты с мок-объектами
+
+## TLS конфигурация (отключено по умолчанию)
+
+Сервис готов к использованию mTLS (mutual TLS) аутентификации. В данный момент TLS отключен, но архитектура полностью поддерживает включение.
+
+### Включение TLS
+
+Для включения HTTPS и проверки сертификатов клиента:
+
+1. **Подготовить сертификаты:**
+   ```bash
+   # Сертификат и ключ сервера
+   openssl req -x509 -newkey rsa:4096 -keyout server.key -out server.crt -days 365 -nodes
+
+   # CA сертификат для проверки client cert (опционально для mTLS)
+   ```
+
+2. **Установить переменные окружения:**
+   ```bash
+   export TLS_ENABLED=true
+   export TLS_CERT_FILE=/path/to/server.crt
+   export TLS_KEY_FILE=/path/to/server.key
+   export TLS_CA_FILE=/path/to/ca.crt  # для проверки client cert
+   ```
+
+3. **Запустить сервис:**
+   ```bash
+   go run ./cmd/manager/main.go
+   ```
+
+### Параметры TLS
+
+- **TLS_ENABLED**: Включить/выключить TLS (true/false, по умолчанию false)
+- **TLS_CERT_FILE**: Путь к файлу с сертификатом сервера (*.crt)
+- **TLS_KEY_FILE**: Путь к файлу с приватным ключом сервера (*.key)
+- **TLS_CA_FILE**: Путь к файлу с CA сертификатом для проверки client cert (опционально)
 
 ## Развёртывание в продакшене
 

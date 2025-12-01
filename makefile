@@ -1,6 +1,6 @@
 lsof:
-	lsof -i :8081
+	lsof -i :8080
 
 kill:
-	kill -9 98050
+	kill -9 20906
 

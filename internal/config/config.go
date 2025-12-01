@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -16,20 +17,72 @@ type DatabaseConfig struct {
 	SSLMode string `toml:"sslmode"`
 }
 
+// TLSConfig represents TLS configuration
+type TLSConfig struct {
+	Enabled  bool   `toml:"enabled"`
+	CertFile string `toml:"cert_file"`
+	KeyFile  string `toml:"key_file"`
+	CAFile   string `toml:"ca_file"`
+}
+
 // Config represents the application configuration.
 type Config struct {
 	ServiceName string         `toml:"service_name"`
 	ServiceEnv  string         `toml:"service_env"`
 	HTTPPort    int            `toml:"http_port"`
 	Database    DatabaseConfig `toml:"database"`
+	TLS         TLSConfig      `toml:"tls"`
 }
 
-// Load reads the configuration from a TOML file.
+// Load reads the configuration from a TOML file and environment variables.
 func Load(filePath string) (*Config, error) {
 	var cfg Config
 	if _, err := toml.DecodeFile(filePath, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to decode config file: %w", err)
 	}
+
+	// Override with environment variables
+	// Database configuration
+	if host := os.Getenv("DB_HOST"); host != "" {
+		cfg.Database.Host = host
+	}
+	if port := os.Getenv("DB_PORT"); port != "" {
+		fmt.Sscanf(port, "%d", &cfg.Database.Port)
+	}
+	if user := os.Getenv("DB_USER"); user != "" {
+		cfg.Database.User = user
+	}
+	if name := os.Getenv("DB_NAME"); name != "" {
+		cfg.Database.Name = name
+	}
+	if sslmode := os.Getenv("DB_SSLMODE"); sslmode != "" {
+		cfg.Database.SSLMode = sslmode
+	}
+
+	// App configuration
+	if port := os.Getenv("APP_PORT"); port != "" {
+		fmt.Sscanf(port, "%d", &cfg.HTTPPort)
+	}
+
+	// TLS configuration
+	if tlsEnabled := os.Getenv("TLS_ENABLED"); tlsEnabled != "" {
+		cfg.TLS.Enabled = strings.ToLower(tlsEnabled) == "true"
+	}
+	if certFile := os.Getenv("TLS_CERT_FILE"); certFile != "" {
+		cfg.TLS.CertFile = certFile
+	}
+	if keyFile := os.Getenv("TLS_KEY_FILE"); keyFile != "" {
+		cfg.TLS.KeyFile = keyFile
+	}
+	if caFile := os.Getenv("TLS_CA_FILE"); caFile != "" {
+		cfg.TLS.CAFile = caFile
+	}
+
+	// Set defaults
+	if cfg.Database.SSLMode == "" {
+		cfg.Database.SSLMode = "disable"
+	}
+
 	return &cfg, nil
 }
 

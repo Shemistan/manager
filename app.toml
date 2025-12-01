@@ -8,3 +8,9 @@ port = 5432
 user = "manager_user"
 name = "manager_db"
 sslmode = "disable"
+
+[tls]
+enabled = false
+cert_file = ""
+key_file = ""
+ca_file = ""
