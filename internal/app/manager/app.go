@@ -8,12 +8,12 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-
+	_ "github.com/lib/pq"
 
 	"github.com/Shemistan/manager/internal/api/manager"
 	"github.com/Shemistan/manager/internal/config"
 	servicemanager "github.com/Shemistan/manager/internal/service/manager"
-r
+	storagemanager "github.com/Shemistan/manager/internal/storage/manager"
 )
 
 // App represents the manager application.
