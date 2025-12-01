@@ -8,14 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
-
-	_ "github.com/lib/pq"
-
 	"github.com/Shemistan/manager/internal/api/manager"
 	"github.com/Shemistan/manager/internal/config"
 	servicemanager "github.com/Shemistan/manager/internal/service/manager"
 	storagemanager "github.com/Shemistan/manager/internal/storage/manager"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 // Run initializes and runs the manager application.

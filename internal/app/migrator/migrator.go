@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/joho/godotenv"
-
 	"github.com/Shemistan/manager/internal/config"
+	"github.com/joho/godotenv"
 )
 
 // Run initializes and runs the database migrator.
