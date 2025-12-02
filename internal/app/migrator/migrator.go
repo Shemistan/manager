@@ -3,16 +3,13 @@ package migrator
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 
-	"github.com/joho/godotenv"
-
-
 	"github.com/Shemistan/manager/internal/config"
+	"github.com/joho/godotenv"
 )
 
 // Run initializes and runs the database migrator.
@@ -35,7 +32,7 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
-	defer db.Close()
+	defer db.Close() // nolint:errcheck
 
 	// Verify database connection.
 	if err := db.Ping(); err != nil {
@@ -45,7 +42,7 @@ func Run() error {
 
 	// Read migration files.
 	migrationDir := "migration"
-	files, err := ioutil.ReadDir(migrationDir)
+	files, err := os.ReadDir(migrationDir)
 	if err != nil {
 		return fmt.Errorf("failed to read migration directory: %w", err)
 	}
@@ -64,7 +61,7 @@ func Run() error {
 		filePath := filepath.Join(migrationDir, fileName)
 		logger.Printf("executing migration: %s", fileName)
 
-		content, err := ioutil.ReadFile(filePath)
+		content, err := os.ReadFile(filePath)
 		if err != nil {
 			return fmt.Errorf("failed to read migration file %s: %w", fileName, err)
 		}

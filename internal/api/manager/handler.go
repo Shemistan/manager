@@ -43,7 +43,7 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 		h.logger.Printf("error handling health check: %v", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(ErrorResponse{
+		json.NewEncoder(w).Encode(ErrorResponse{ // nolint:errcheck
 			Status: "error",
 			Error:  "failed to record health check",
 		})
@@ -53,7 +53,7 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	// Return success response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(HealthResponse{
+	json.NewEncoder(w).Encode(HealthResponse{ // nolint:errcheck
 		Status: "success",
 	})
 }

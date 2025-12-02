@@ -27,7 +27,6 @@ func TestHandleHealth_Success(t *testing.T) {
 
 	service := NewHealthService(mock)
 	err := service.HandleHealth(context.Background())
-
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

@@ -6,23 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"time"
 
 	"github.com/Shemistan/manager/internal/api/manager"
 	"github.com/Shemistan/manager/internal/config"
 	servicemanager "github.com/Shemistan/manager/internal/service/manager"
 	storagemanager "github.com/Shemistan/manager/internal/storage/manager"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
-
-// App represents the manager application.
-type App struct {
-	config     *config.Config
-	logger     *log.Logger
-	db         *sql.DB
-	httpServer *http.Server
-}
 
 // Run initializes and runs the manager application.
 func Run() error {
@@ -44,7 +36,7 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
-	defer db.Close()
+	defer db.Close() // nolint:errcheck
 
 	// Verify database connection.
 	if err := db.Ping(); err != nil {
@@ -64,8 +56,9 @@ func Run() error {
 
 	// Start HTTP server.
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.HTTPPort),
-		Handler: router,
+		Addr:              fmt.Sprintf(":%d", cfg.HTTPPort),
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	logger.Printf("starting HTTP server on port %d", cfg.HTTPPort)

@@ -47,7 +47,7 @@ func Load(filePath string) (*Config, error) {
 		cfg.Database.Host = host
 	}
 	if port := os.Getenv("DB_PORT"); port != "" {
-		fmt.Sscanf(port, "%d", &cfg.Database.Port)
+		fmt.Sscanf(port, "%d", &cfg.Database.Port) // nolint:errcheck
 	}
 	if user := os.Getenv("DB_USER"); user != "" {
 		cfg.Database.User = user
@@ -61,7 +61,7 @@ func Load(filePath string) (*Config, error) {
 
 	// App configuration
 	if port := os.Getenv("APP_PORT"); port != "" {
-		fmt.Sscanf(port, "%d", &cfg.HTTPPort)
+		fmt.Sscanf(port, "%d", &cfg.HTTPPort) // nolint:errcheck
 	}
 
 	// TLS configuration
