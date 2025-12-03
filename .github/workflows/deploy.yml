@@ -32,13 +32,13 @@ jobs:
           target: "/opt/${{ secrets.SERVICE_NAME }}/"
           overwrite: true
 
-      - name: Restart systemd service
+      - name: Restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo systemctl daemon-reload
-            sudo systemctl restart ${{ secrets.SERVICE_NAME }}
-            sudo systemctl status ${{ secrets.SERVICE_NAME }} --no-pager
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl daemon-reload
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart ${{ secrets.SERVICE_NAME }}
+            echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl status ${{ secrets.SERVICE_NAME }} --no-pager
