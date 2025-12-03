@@ -20,7 +20,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir build
-          GOOS=linux GOARCH=amd64 go build -o build/app ./cmd
+          GOOS=linux GOARCH=amd64 go build -o build/app ./cmd/manager
 
       - name: Upload binary to server
         uses: appleboy/scp-action@v0.1.7
