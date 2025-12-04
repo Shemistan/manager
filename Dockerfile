@@ -31,7 +31,7 @@ COPY --from=builder /app/manager .
 COPY --from=builder /app/migrator .
 
 # Copy config and migrations
-COPY app.toml .
+COPY .env .
 COPY migration ./migration
 
 # Expose port

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/BurntSushi/toml"
 )
 
 // DatabaseConfig represents database configuration.
@@ -35,11 +33,8 @@ type Config struct {
 }
 
 // Load reads the configuration from a TOML file and environment variables.
-func Load(filePath string) (*Config, error) {
+func Load() (*Config, error) {
 	var cfg Config
-	if _, err := toml.DecodeFile(filePath, &cfg); err != nil {
-		return nil, fmt.Errorf("failed to decode config file: %w", err)
-	}
 
 	// Override with environment variables
 	// Database configuration
@@ -60,7 +55,7 @@ func Load(filePath string) (*Config, error) {
 	}
 
 	// App configuration
-	if port := os.Getenv("APP_PORT"); port != "" {
+	if port := os.Getenv("SERVICE_PORT"); port != "" {
 		fmt.Sscanf(port, "%d", &cfg.HTTPPort) // nolint:errcheck
 	}
 
@@ -92,17 +87,13 @@ func GetDatabasePassword() string {
 }
 
 // GetDatabaseUser retrieves the database user from environment variables (or uses config value).
-func GetDatabaseUser(configUser string) string {
-	envUser := os.Getenv("DB_USER")
-	if envUser != "" {
-		return envUser
-	}
-	return configUser
+func GetDatabaseUser() string {
+	return os.Getenv("DB_USER")
 }
 
 // BuildDSN constructs a PostgreSQL DSN string.
 func BuildDSN(cfg *Config) string {
-	user := GetDatabaseUser(cfg.Database.User)
+	user := GetDatabaseUser()
 	password := GetDatabasePassword()
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",

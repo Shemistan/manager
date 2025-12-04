@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"github.com/Shemistan/manager/internal/api/manager"
 	"github.com/Shemistan/manager/internal/config"
 	servicemanager "github.com/Shemistan/manager/internal/service/manager"
+	storagemanager "github.com/Shemistan/manager/internal/storage/manager"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -20,7 +22,7 @@ func Run() error {
 	_ = godotenv.Load()
 
 	// Load configuration.
-	cfg, err := config.Load("app.toml")
+	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
@@ -28,25 +30,25 @@ func Run() error {
 	// Initialize logger.
 	logger := log.New(os.Stdout, "[manager] ", log.LstdFlags|log.Lshortfile)
 
-	//// Connect to database.
-	//dsn := config.BuildDSN(cfg)
-	//db, err := sql.Open("postgres", dsn)
-	//if err != nil {
-	//	return fmt.Errorf("failed to open database: %w", err)
-	//}
-	//defer db.Close() // nolint:errcheck
-	//
-	//// Verify database connection.
-	//if err := db.Ping(); err != nil {
-	//	return fmt.Errorf("failed to ping database: %w", err)
-	//}
-	//logger.Println("connected to database")
-	//
-	//// Initialize storage.
-	//healthStorage := storagemanager.NewHealthStorage(db)
+	// Connect to database.
+	dsn := config.BuildDSN(cfg)
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close() // nolint:errcheck
+
+	// Verify database connection.
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
+	logger.Println("connected to database")
+
+	// Initialize storage.
+	healthStorage := storagemanager.NewHealthStorage(db)
 
 	// Initialize service.
-	healthService := servicemanager.NewHealthService(nil)
+	healthService := servicemanager.NewHealthService(healthStorage)
 
 	// Initialize API handler.
 	handler := manager.NewHandler(healthService, logger)
