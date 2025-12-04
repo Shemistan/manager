@@ -30,8 +30,7 @@ RUN apk --no-cache add postgresql-client
 COPY --from=builder /app/manager .
 COPY --from=builder /app/migrator .
 
-# Copy config and migrations
-COPY .env .
+# Copy migrations
 COPY migration ./migration
 
 # Expose port
