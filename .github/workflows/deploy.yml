@@ -36,10 +36,17 @@ jobs:
             ./ "$SSH_USER@$SSH_HOST:/opt/$SERVICE_NAME/"
 
       - name: Run migrations and restart containers
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           ssh "$SSH_USER@$SSH_HOST" "
             set -e
             cd /opt/$SERVICE_NAME
+
+            # логинимся в Docker Hub на СЕРВЕРЕ
+            echo \"$DOCKERHUB_TOKEN\" | docker login -u \"$DOCKERHUB_USERNAME\" --password-stdin
+
             docker compose build
             docker compose up --no-deps migrator
             docker compose up -d --no-deps manager
