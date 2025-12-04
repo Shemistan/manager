@@ -33,12 +33,11 @@ jobs:
           rsync -az --delete \
             --exclude '.git' \
             --exclude '.github' \
+            --exclude '.env' \
             ./ "$SSH_USER@$SSH_HOST:/opt/$SERVICE_NAME/"
 
-      - name: Run migrations and restart containers
+      - name: Create .env file on server
         env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           SERVICE_PORT: ${{ secrets.SERVICE_PORT }}
           SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
           DB_HOST: ${{ secrets.DB_HOST }}
@@ -49,6 +48,24 @@ jobs:
           DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
           TLS_ENABLED: ${{ secrets.TLS_ENABLED }}
         run: |
+          ssh "$SSH_USER@$SSH_HOST" "cat > /opt/$SERVICE_NAME/.env" << EOF
+          SERVICE_NAME=$SERVICE_NAME
+          SERVICE_PORT=$SERVICE_PORT
+          DB_HOST=$DB_HOST
+          DB_PORT=$DB_PORT
+          DB_USER=$DB_USER
+          DB_PASSWORD=$DB_PASSWORD
+          DB_NAME=$DB_NAME
+          DB_SSLMODE=$DB_SSLMODE
+          TLS_ENABLED=$TLS_ENABLED
+          EOF
+
+      - name: Run migrations and restart containers
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
+        run: |
           ssh "$SSH_USER@$SSH_HOST" "
             set -e
             cd /opt/$SERVICE_NAME
@@ -58,5 +75,5 @@ jobs:
 
             docker compose build
             docker compose up --no-deps migrator
-            docker compose up -d --no-deps ${{ secrets.SERVICE_NAME }}
+            docker compose up -d --no-deps $SERVICE_NAME
           "
