@@ -10,6 +10,7 @@ import (
 
 	"github.com/Shemistan/manager/internal/config"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 // Run initializes and runs the database migrator.
@@ -18,7 +19,7 @@ func Run() error {
 	_ = godotenv.Load()
 
 	// Load configuration.
-	cfg, err := config.Load("app.toml")
+	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
