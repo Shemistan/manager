@@ -1,4 +1,4 @@
-name: Deploy manager to server
+name: CD
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
           ssh "$SSH_USER@$SSH_HOST" "
             set -e
             cd /opt/$SERVICE_NAME
-            docker compose build
-            docker compose up --no-deps migrator
-            docker compose up -d --no-deps manager
+            docker-compose build
+            docker-compose up --no-deps migrator
+            docker-compose up -d --no-deps manager
           "
