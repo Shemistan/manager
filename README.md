@@ -39,7 +39,6 @@ manager/
 │           └── storage.go
 ├── migration/             # SQL-миграции
 │   └── 001_init_health.sql
-├── app.toml               # Конфиг приложения
 ├── .env.example           # Пример переменных окружения
 ├── Dockerfile             # Docker-образ
 ├── docker-compose.yml     # Оркестрация контейнеров
@@ -66,9 +65,10 @@ manager/
 
 ### 3. **Конфигурация**
 
-- `app.toml`: общие настройки (не содержит секретов)
-- `.env`: секреты локально (не коммитится)
-- Переменные окружения для Docker
+- Вся конфигурация загружается через переменные окружения
+- `.env`: локальные переменные окружения (не коммитится)
+- `.env.example`: пример конфигурации для локальной разработки
+- Переменные окружения для Docker в docker-compose.yml
 
 ## Функциональность
 
@@ -126,11 +126,11 @@ GET /health HTTP/1.1
    ```bash
    go run ./cmd/manager/main.go
    ```
-   Сервис будет доступен на `http://localhost:8081`
+   Сервис будет доступен на `http://localhost:8080` (или на порту, указанном в переменной `SERVICE_PORT`)
 
 6. **Проверить здоровье:**
    ```bash
-   curl http://localhost:8081/health
+   curl http://localhost:8080/health
    ```
 
 ### Запуск тестов
@@ -170,8 +170,10 @@ go test ./... -v
 
 3. **Проверить здоровье:**
    ```bash
-   curl http://localhost:8081/health
+   curl http://localhost:8080/health
    ```
+
+   (Порт зависит от значения переменной `SERVICE_PORT` в `.env` файле)
 
 4. **Остановить:**
    ```bash
@@ -188,7 +190,7 @@ go test ./... -v
 ### Успешный запрос
 
 ```bash
-curl -X GET http://localhost:8081/health
+curl -X GET http://localhost:8080/health
 ```
 
 ```json
@@ -226,26 +228,7 @@ CREATE INDEX IF NOT EXISTS idx_health_calls_called_at ON health_calls(called_at)
 
 ## Конфигурация
 
-### `app.toml`
-
-```toml
-service_name = "manager"
-service_env = "local"  # local / prod
-http_port = 8081
-
-[database]
-host = "localhost"
-port = 5432
-user = "manager_user"
-name = "manager_db"
-sslmode = "disable"
-
-[tls]
-enabled = false
-cert_file = ""
-key_file = ""
-ca_file = ""
-```
+Сервис настраивается исключительно через переменные окружения. Файл `.env` используется для локальной разработки.
 
 ### Переменные окружения
 
@@ -261,7 +244,8 @@ DB_SSLMODE=disable             # SSL режим (disable/require)
 
 #### Application
 ```
-APP_PORT=8081                  # Порт HTTP сервера
+SERVICE_NAME=manager           # Имя сервиса (для Docker)
+SERVICE_PORT=8080              # Порт HTTP сервера
 ```
 
 #### TLS (по умолчанию отключен)
@@ -275,9 +259,15 @@ TLS_CA_FILE=                   # Путь к сертификату CA для п
 ### Пример `.env` для локальной разработки
 
 ```bash
+SERVICE_NAME=manager
+SERVICE_PORT=8080
+DB_HOST=localhost
+DB_PORT=5432
 DB_USER=manager_user
 DB_PASSWORD=secure_password_here
+DB_NAME=manager_db
 DB_SSLMODE=disable
+TLS_ENABLED=false
 ```
 
 ## Зависимости
@@ -335,25 +325,21 @@ DB_SSLMODE=disable
 
 ### Изменения для продакшена
 
-1. **`app.toml`**: установить `service_env = "prod"`
-2. **Миграции**: выполнить один раз перед стартом сервиса
-3. **SSL БД**: изменить `sslmode` в конфиге на `"require"`
-4. **Переменные окружения**: использовать безопасные хранилища (AWS Secrets Manager, Vault, и т.д.)
-5. **Dockerfile**: убедиться в многостейджовой сборке и минимальном образе
+1. **Миграции**: выполнить один раз перед стартом сервиса
+2. **SSL БД**: установить переменную `DB_SSLMODE=require`
+3. **Переменные окружения**: использовать безопасные хранилища (AWS Secrets Manager, Vault, и т.д.)
+4. **Dockerfile**: убедиться в многостейджовой сборке и минимальном образе (уже реализовано)
+5. **TLS**: при необходимости включить TLS с помощью переменной `TLS_ENABLED=true`
 
 ## Проблемы и решения
 
 ### Ошибка: "failed to ping database"
 
-Убедиться, что PostgreSQL запущен и доступен на `localhost:5432` с правильными креденшалами.
-
-### Ошибка: "no such file or directory: app.toml"
-
-Убедиться, что вы запускаете сервис из корневой директории проекта.
+Убедиться, что PostgreSQL запущен и доступен, а переменные окружения (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`) установлены правильно.
 
 ### Ошибка: "migration directory: no such file or directory"
 
-Убедиться, что папка `migration/` существует и содержит файлы `.sql`.
+Убедиться, что папка `migration/` существует и содержит файлы `.sql`, а также что вы запускаете сервис из корневой директории проекта.
 
 ## Лицензия
 
